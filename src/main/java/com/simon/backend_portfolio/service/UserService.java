@@ -2,6 +2,8 @@ package com.simon.backend_portfolio.service;
 
 import com.simon.backend_portfolio.model.User;
 import com.simon.backend_portfolio.repository.UserRepository;
+import com.simon.backend_portfolio.exception.ResourceNotFoundException;
+import com.simon.backend_portfolio.exception.DuplicateEntryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder; // Importar la dependencia de seguridad
 import org.springframework.stereotype.Service;
@@ -13,7 +15,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // CRUCIAL para seguridad
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     // 1. Inyección de Dependencias: Ahora inyectamos el Repositorio Y el Codificador
@@ -23,15 +25,13 @@ public class UserService {
     }
 
     // --- LECTURA (Pública para el Frontend) ---
-
-    // Obtener todos los usuarios (solo 1 admin)
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Obtener un usuario por ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Perfil de usuario no encontrado con ID: " + id));
     }
 
     // Obtener el usuario por username (Método clave para Spring Security)
@@ -40,36 +40,44 @@ public class UserService {
     }
 
     // --- ESCRITURA (Requiere Rol Admin) ---
-
-// Archivo: src/main/java/com/simon/backend_portfolio.service/UserService.java
-
-// ...
-
-    // 2. Guardar/Actualizar la información del perfil
+    // Guardar/Actualizar la información del perfil
     public User saveUser(User user) {
 
-        // --- 1. Lógica para Hashear la Contraseña ---
+        //Integridad de Datos: Validación básica de campos obligatorios
+        if (user.getNombre() == null || user.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre es un campo obligatorio.");
+        }
+
+        //Unicidad (solo si se está creando o si se actualiza el username/email)
+        if (user.getId() == null) {
+            userRepository.findByUsername(user.getUsername()).ifPresent(u -> {
+                throw new DuplicateEntryException("El nombre de usuario '" + u.getUsername() + "' ya existe.");
+            });
+        }
+
+        //Lógica de Hasheo y Mantenimiento de Contraseña
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            // Si el DTO de entrada tiene una contraseña, la hasheamos.
+            // Hashear si se proporciona una nueva contraseña
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         } else if (user.getId() != null) {
-            // --- 2. Lógica para MANTENER la Contraseña Antigua (Actualización) ---
+            // Mantiene el hash de la contraseña antigua si no se proporcionó una nueva
+            User existingUser = userRepository.findById(user.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("No se puede actualizar, el perfil no existe."));
 
-            // Si es una actualización (tiene ID) pero la contraseña está vacía,
-            // cargamos el hash existente de la base de datos y lo reasignamos.
-            Optional<User> existingUserOpt = userRepository.findById(user.getId());
+            user.setPassword(existingUser.getPassword());
+        }
 
-            if (existingUserOpt.isPresent()) {
-                // Sobreescribimos la contraseña vacía con la contraseña hasheada (segura)
-                // que ya está en la BBDD.
-                user.setPassword(existingUserOpt.get().getPassword());
-            } else {
-                // Lógica de error si el ID existe pero el usuario no. (Opcional)
-                throw new RuntimeException("El usuario a actualizar no existe.");
-            }
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("ROLE_ADMIN");
         }
 
         return userRepository.save(user);
+    }
+
+    // Método de eliminación (Opcional, ya que solo tendre un usuario admin)
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 
 }
