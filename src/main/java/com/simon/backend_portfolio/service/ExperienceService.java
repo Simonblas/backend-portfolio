@@ -1,13 +1,13 @@
 package com.simon.backend_portfolio.service;
 
-
 import com.simon.backend_portfolio.model.Experience;
 import com.simon.backend_portfolio.repository.ExperienceRepository;
+import com.simon.backend_portfolio.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ExperienceService {
@@ -21,15 +21,21 @@ public class ExperienceService {
 
     // LECTURA
     public List<Experience> getAllExperiences() {
-        return experienceRepository.findAll();
+        Sort sortByDateDesc = Sort.by(Sort.Direction.DESC, "fechaInicio");
+        return experienceRepository.findAll(sortByDateDesc);
     }
 
-    public Optional<Experience> getExperienceById(Long id) {
-        return experienceRepository.findById(id);
+
+    public Experience getExperienceById(Long id) {
+        return experienceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Registro de experiencia no encontrado con ID: " + id));
     }
 
-    // ESCRITURA (Requiere Rol Admin)
     public Experience saveExperience(Experience experience) {
+
+        if (experience.getFechaFin() != null && experience.getFechaInicio().isAfter(experience.getFechaFin())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin.");
+        }
+
         return experienceRepository.save(experience);
     }
 

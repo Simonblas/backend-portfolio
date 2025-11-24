@@ -1,7 +1,8 @@
 package com.simon.backend_portfolio.service;
 
 import com.simon.backend_portfolio.model.User;
-import org.springframework.beans.factory.annotation.Value; // Importa @Value
+import com.simon.backend_portfolio.model.Skill; // Importar Skill
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -11,12 +12,13 @@ import java.time.LocalDate;
 public class InitialDataLoader implements CommandLineRunner {
 
     private final UserService userService;
+    private final SkillService skillService;
 
-    public InitialDataLoader(UserService userService) {
+    public InitialDataLoader(UserService userService, SkillService skillService) {
         this.userService = userService;
+        this.skillService = skillService;
     }
 
-    // 1. Inyectamos la propiedad definida en application.properties
     @Value("${admin.username}")
     private String adminUsername;
 
@@ -65,7 +67,21 @@ public class InitialDataLoader implements CommandLineRunner {
             // --- 5. GUARDAR EN LA BASE DE DATOS ---
             userService.saveUser(adminUser); // El servicio hashea la contraseña y guarda
 
-            System.out.println("✅ Usuario administrador inicial creado: " + adminUser.getUsername());
+            System.out.println("Usuario administrador inicial creado: " + adminUser.getUsername());
+        }
+        // --- 2. CARGAR SKILLS INICIALES (Para Pruebas M-a-M) ---
+        if (skillService.getAllSkills().isEmpty()) {
+
+            // Skill 1: Backend
+            skillService.saveSkill(new Skill("Spring Boot", "Intermedio", "Backend", "url_icono_spring"));
+
+            // Skill 2: Frontend
+            skillService.saveSkill(new Skill("React", "Avanzado", "Frontend", "url_icono_react"));
+
+            // Skill 3: Base de Datos
+            skillService.saveSkill(new Skill("MySQL", "Intermedio", "Database", "url_icono_mysql"));
+
+            System.out.println("Skills iniciales cargadas.");
         }
     }
 }

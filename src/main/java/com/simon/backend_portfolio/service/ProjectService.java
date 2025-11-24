@@ -3,18 +3,19 @@ package com.simon.backend_portfolio.service;
 import com.simon.backend_portfolio.model.Project;
 import com.simon.backend_portfolio.model.Skill;
 import com.simon.backend_portfolio.repository.ProjectRepository;
+import com.simon.backend_portfolio.exception.ResourceNotFoundException;
+import com.simon.backend_portfolio.exception.DuplicateEntryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
-    private final SkillService skillService; // <-- Dependencia clave para M-a-M
+    private final SkillService skillService;
 
     @Autowired
     public ProjectService(ProjectRepository projectRepository, SkillService skillService) {
@@ -22,17 +23,23 @@ public class ProjectService {
         this.skillService = skillService;
     }
 
-    // LECTURA
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
     }
 
-    public Optional<Project> getProjectById(Long id) {
-        return projectRepository.findById(id);
+    public Project getProjectById(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con ID: " + id));
     }
 
-    // ESCRITURA (CRUD Básico)
     public Project saveProject(Project project) {
+        // Evitar duplicados por título
+        if (project.getId() == null || project.getId() == 0) {
+            projectRepository.findByTitulo(project.getTitulo()).ifPresent(p -> {
+                throw new DuplicateEntryException("Ya existe un proyecto con el título: " + p.getTitulo());
+            });
+        }
+
         return projectRepository.save(project);
     }
 
@@ -40,20 +47,24 @@ public class ProjectService {
         projectRepository.deleteById(id);
     }
 
-    // LÓGICA DE RELACIÓN (M-a-M)
-    public Optional<Project> addSkillsToProject(Long projectId, Set<Long> skillIds) {
-        Optional<Project> projectOpt = projectRepository.findById(projectId);
-        if (projectOpt.isEmpty()) {
-            return Optional.empty();
-        }
+    // --- LÓGICA DE RELACIÓN (M-a-M) ---
+    public Project addSkillsToProject(Long projectId, Set<Long> skillIds) {
 
-        Project project = projectOpt.get();
+        // Lanza 404 si el proyecto no existe
+        Project project = getProjectById(projectId);
 
+        // Iterar sobre los IDs de skills
         for (Long skillId : skillIds) {
-            skillService.getSkillById(skillId)
-                    .ifPresent(project::addSkill); // Añade al Set<Skill> del proyecto
+            try {
+                // Si la skill no existe, lanza 404, pero el bucle continúa con las demás skills
+                Skill skill = skillService.getSkillById(skillId);
+                project.addSkill(skill);
+            } catch (ResourceNotFoundException e) {
+                // Esto permite asociar las skills válidas e ignorar las inválidas.
+                System.out.println("Advertencia: Skill con ID " + skillId + " no encontrada. Se ignoró.");
+            }
         }
 
-        return Optional.of(projectRepository.save(project)); // Guarda la relación
+        return projectRepository.save(project);
     }
 }

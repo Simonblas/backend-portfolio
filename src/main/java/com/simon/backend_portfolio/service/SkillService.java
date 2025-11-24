@@ -1,13 +1,13 @@
 package com.simon.backend_portfolio.service;
 
-
 import com.simon.backend_portfolio.model.Skill;
 import com.simon.backend_portfolio.repository.SkillRepository;
+import com.simon.backend_portfolio.exception.ResourceNotFoundException;
+import com.simon.backend_portfolio.exception.DuplicateEntryException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class SkillService {
@@ -19,17 +19,23 @@ public class SkillService {
         this.skillRepository = skillRepository;
     }
 
-    // LECTURA
     public List<Skill> getAllSkills() {
         return skillRepository.findAll();
     }
 
-    public Optional<Skill> getSkillById(Long id) {
-        return skillRepository.findById(id);
+    public Skill getSkillById(Long id) {
+        return skillRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Habilidad no encontrada con ID: " + id));
     }
 
-    // ESCRITURA (Requiere Rol Admin)
     public Skill saveSkill(Skill skill) {
+        // 1. Lógica de Unicidad: Comprueba si es un nuevo registro
+        if (skill.getId() == null || skill.getId() == 0) {
+            skillRepository.findByNombre(skill.getNombre()).ifPresent(s -> {
+                throw new DuplicateEntryException("La habilidad '" + s.getNombre() + "' ya existe.");
+            });
+        }
+
         return skillRepository.save(skill);
     }
 
