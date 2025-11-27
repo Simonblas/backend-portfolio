@@ -31,7 +31,6 @@ public class Experience {
     public Experience() {
     }
 
-    // Constructor completo
     public Experience(String empresa, String puesto, String descripcion, LocalDate fechaInicio, LocalDate fechaFin, String logoUrl) {
         this.empresa = empresa;
         this.puesto = puesto;

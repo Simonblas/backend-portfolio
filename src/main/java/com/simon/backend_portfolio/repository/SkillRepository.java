@@ -10,6 +10,5 @@ import java.util.Optional;
 @Repository
 public interface SkillRepository extends JpaRepository<Skill, Long> {
 
-    // Opcional: Buscar una habilidad por nombre (útil para la lógica de negocio)
     Optional<Skill> findByNombre(String nombre);
 }

@@ -37,7 +37,6 @@ public class Project {
     public Project() {
     }
 
-    // Constructor completo
     public Project(String titulo, String descripcion, String urlDemo, String urlRepo, String imageUrl, LocalDate fecha) {
         this.titulo = titulo;
         this.descripcion = descripcion;

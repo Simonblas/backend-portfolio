@@ -34,7 +34,6 @@ public class Education {
     public Education() {
     }
 
-    // Constructor completo
     public Education(String institucion, String titulo, String descripcion, LocalDate fechaInicio, LocalDate fechaFin, String logoUrl, String tipo) {
         this.institucion = institucion;
         this.titulo = titulo;

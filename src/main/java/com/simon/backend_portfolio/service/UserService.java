@@ -18,7 +18,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    // 1. Inyección de Dependencias: Ahora inyectamos el Repositorio Y el Codificador
+    // Inyección de Dependencias: Ahora inyectamos el Repositorio Y el Codificador
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;

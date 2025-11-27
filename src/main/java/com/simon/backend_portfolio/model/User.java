@@ -41,10 +41,10 @@ public class User {
     private String username;
 
     @Column(nullable = false)
-    private String password; // ¡Debe guardarse hasheada con Spring Security!
+    private String password; // Se guarda hasheada con Spring Security
 
     @Column(nullable = false)
-    private String role = "ROLE_ADMIN"; // Define tu rol como administrador
+    private String role = "ROLE_ADMIN"; // Define rol como administrador
 
     // Constructor vacío (para JPA/Hibernate)
     public User() {
