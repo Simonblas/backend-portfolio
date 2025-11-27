@@ -1,11 +1,8 @@
 package com.simon.backend_portfolio.service;
 
 import com.simon.backend_portfolio.model.User;
-<<<<<<< HEAD
 import com.simon.backend_portfolio.model.Skill;
-=======
 import com.simon.backend_portfolio.model.Skill; // Importar Skill
->>>>>>> 4846840ed760695b8db5ed644c345da3777f022b
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -65,11 +62,8 @@ public class InitialDataLoader implements CommandLineRunner {
 
             System.out.println("Usuario administrador inicial creado: " + adminUser.getUsername());
         }
-<<<<<<< HEAD
         // CARGAR SKILLS INICIALES (Para Pruebas M-a-M)
-=======
         // --- 2. CARGAR SKILLS INICIALES (Para Pruebas M-a-M) ---
->>>>>>> 4846840ed760695b8db5ed644c345da3777f022b
         if (skillService.getAllSkills().isEmpty()) {
 
             // Skill 1: Backend
