@@ -29,11 +29,7 @@ public class SkillService {
     }
 
     public Skill saveSkill(Skill skill) {
-<<<<<<< HEAD
         // Lógica de Unicidad: Comprueba si es un nuevo registro
-=======
-        // 1. Lógica de Unicidad: Comprueba si es un nuevo registro
->>>>>>> 4846840ed760695b8db5ed644c345da3777f022b
         if (skill.getId() == null || skill.getId() == 0) {
             skillRepository.findByNombre(skill.getNombre()).ifPresent(s -> {
                 throw new DuplicateEntryException("La habilidad '" + s.getNombre() + "' ya existe.");
