@@ -63,7 +63,7 @@ public class InitialDataLoader implements CommandLineRunner {
             System.out.println("Usuario administrador inicial creado: " + adminUser.getUsername());
         }
         // CARGAR SKILLS INICIALES (Para Pruebas M-a-M)
-        // --- 2. CARGAR SKILLS INICIALES (Para Pruebas M-a-M) ---
+        // . CARGAR SKILLS INICIALES (Para Pruebas M-a-M) ---
         if (skillService.getAllSkills().isEmpty()) {
 
             // Skill 1: Backend
