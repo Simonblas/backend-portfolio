@@ -2,6 +2,7 @@ package com.simon.backend_portfolio.service;
 
 import com.simon.backend_portfolio.model.User;
 import com.simon.backend_portfolio.model.Skill;
+import com.simon.backend_portfolio.model.Skill; // Importar Skill
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -62,6 +63,7 @@ public class InitialDataLoader implements CommandLineRunner {
             System.out.println("Usuario administrador inicial creado: " + adminUser.getUsername());
         }
         // CARGAR SKILLS INICIALES (Para Pruebas M-a-M)
+        // . CARGAR SKILLS INICIALES (Para Pruebas M-a-M) ---
         if (skillService.getAllSkills().isEmpty()) {
 
             // Skill 1: Backend
