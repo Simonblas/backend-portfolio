@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
-@CrossOrigin(origins = "http://localhost:3000")
+//@CrossOrigin(origins = "http://localhost:3000") asignamos esto en el cors global (SecurityConfig.java)
 public class ProjectController {
 
     @Autowired
