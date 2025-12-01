@@ -30,8 +30,7 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Perfil de usuario no encontrado con ID: " + id));
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Perfil de usuario no encontrado con ID: " + id));
     }
 
     // Obtener el usuario por username (Método clave para Spring Security)
@@ -57,13 +56,13 @@ public class UserService {
 
         //Lógica de Hasheo y Mantenimiento de Contraseña
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            // Hashear si se proporciona una nueva contraseña
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-
+            //hash password
+            if (user.getId() == null || !user.getPassword().startsWith("$2a$")) {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+            }
         } else if (user.getId() != null) {
             // Mantiene el hash de la contraseña antigua si no se proporcionó una nueva
-            User existingUser = userRepository.findById(user.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("No se puede actualizar, el perfil no existe."));
+            User existingUser = userRepository.findById(user.getId()).orElseThrow(() -> new ResourceNotFoundException("No se puede actualizar, el perfil no existe."));
 
             user.setPassword(existingUser.getPassword());
         }

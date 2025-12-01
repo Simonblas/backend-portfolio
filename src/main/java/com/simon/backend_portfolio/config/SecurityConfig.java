@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -30,9 +31,6 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-
-    @Autowired
     private JwtEntryPoint jwtEntryPoint;
 
     @Autowired
@@ -47,19 +45,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    //Provedor de Autenticación (conecta el UserDetailsService y el PasswordEncoder)
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService); // Nuestro servicio de usuario
-        authProvider.setPasswordEncoder(passwordEncoder()); // Nuestro codificador
-        return authProvider;
-    }
 
     // Manager de Autenticación (el que orquesta el login)
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder) throws Exception {
+
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService); // Usa el UserDetailsService inyectado
+        authProvider.setPasswordEncoder(passwordEncoder); // Usa el PasswordEncoder inyectado
+
+        // Creamos y devolvemos el Manager usando el proveedor configurado
+        return new ProviderManager(authProvider);
     }
 
     //Define la política CORS globalmente
@@ -69,10 +65,8 @@ public class SecurityConfig {
 
         // Orígenes Permitidos
         configuration.setAllowedOrigins(Arrays.asList(
-                        // dominio en Railway, aqui debera ir el frontend que consumira la API
-                        "https://railway-backend-portfolio-production.up.railway.app"
-                )
-        );
+                // dominio en Railway, aqui debera ir el frontend que consumira la API
+                "https://railway-backend-portfolio-production.up.railway.app"));
 
         // Métodos y Encabezados Permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -86,6 +80,7 @@ public class SecurityConfig {
         return source;
     }
 
+
     //Cadena de Filtros de Seguridad (La configuración principal)
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -93,6 +88,7 @@ public class SecurityConfig {
                 // Deshabilitar CSRF (es necesario en API REST sin sesiones)
                 .csrf(csrf -> csrf.disable())
 
+                //Habilitar cors
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // Configurar el manejo de excepciones de autenticación
@@ -119,8 +115,6 @@ public class SecurityConfig {
         // Añadir nuestro filtro JWT ANTES del filtro estándar de autenticación de usuario y contraseña
         http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // Agregar el proveedor de autenticación
-        http.authenticationProvider(authenticationProvider());
 
         return http.build();
     }
