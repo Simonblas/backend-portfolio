@@ -66,7 +66,7 @@ public class SecurityConfig {
         // Orígenes Permitidos
         configuration.setAllowedOrigins(Arrays.asList(
                 // dominio en Railway, aqui debera ir el frontend que consumira la API
-                "https://railway-backend-portfolio-production.up.railway.app"));
+                "https://railway-backend-portfolio-production.up.railway.app", "http://localhost:5173"));
 
         // Métodos y Encabezados Permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
